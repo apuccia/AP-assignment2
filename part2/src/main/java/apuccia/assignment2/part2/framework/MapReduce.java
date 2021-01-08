@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
@@ -24,6 +23,7 @@ public abstract class MapReduce<K, V, MK, MV, O> {
     protected abstract Stream<? extends Pair<MK, MV>> map(Stream<? extends Pair<K, V>> readPairs);
     protected Stream<? extends Pair<MK, List<MV>>> group(Stream<? extends Pair<MK, MV>> mappedPairs) {
         Map<MK, List<MV>> groupedByEqualKeys = new TreeMap<>();
+        
         mappedPairs.forEach(pair -> {
             List<MV> keyValues = groupedByEqualKeys.get(pair.getKey());
             
