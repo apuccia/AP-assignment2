@@ -35,12 +35,10 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
         return readPairs.flatMap(
                 filePair -> filePair.getValue().stream().flatMap(
                     line -> Arrays.stream(line.replaceAll(
-                                "[^a-zA-Z\\s]", "").toLowerCase().split(" ")).filter(
+                                "[^a-zA-Z\\s]", " ").toLowerCase().split(" ")).filter(
                         word -> word.length() > 3).map(
-                            word -> new Pair<>(filePair.getKey(), new Pair(word, filePair.getValue().indexOf(line))))));
+                            word -> new Pair<>(word, new Pair(filePair.getKey(), filePair.getValue().indexOf(line))))));
     }
-
-    
 
     @Override
     protected int compare(String s1, String s2) {
@@ -61,7 +59,4 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
             throws IOException {
         output.forEach(pair -> System.out.println(pair.getKey() + " : " + pair.getValue().getKey() + " : " + pair.getValue().getValue()));
     }
-
-    
-    
 }
