@@ -8,7 +8,9 @@ package apuccia.assignment2.part2.invertedindex;
 import apuccia.assignment2.part2.framework.MapReduce;
 import apuccia.assignment2.part2.utils.Pair;
 import apuccia.assignment2.part2.utils.Reader;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +59,8 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
     protected void write(
             Stream<Pair<String, Pair<String, Integer>>> output, Path fileName)
             throws IOException {
-        output.forEach(pair -> System.out.println(pair.getKey() + " : " + pair.getValue().getKey() + " : " + pair.getValue().getValue()));
+        PrintStream ps = new PrintStream(new File(fileName.toString()));
+        output.forEach(p -> ps.println(p.getKey() + ", " + p.getValue().getValue() + ", " + p.getValue().getKey()));
+        ps.close();
     }
 }

@@ -37,7 +37,7 @@ public class WordsCount extends MapReduce<String, List<String>, String, Integer,
         
         return readPairs.flatMap(
             filePair -> filePair.getValue().stream().flatMap(
-                line -> Arrays.stream(line.replaceAll("[^a-zA-Z\\\\s]", "").
+                line -> Arrays.stream(line.replaceAll("[^a-zA-Z\\s]", " ").
                                             toLowerCase().
                                             split(" ")).
                         filter(word -> word.length() > 3).
@@ -66,7 +66,6 @@ public class WordsCount extends MapReduce<String, List<String>, String, Integer,
     @Override
     protected void write(Stream<Pair<String, Integer>> output, Path fileName)
             throws IOException {
-        
         Writer.write(new File(fileName.toString()), output);
     }
 }

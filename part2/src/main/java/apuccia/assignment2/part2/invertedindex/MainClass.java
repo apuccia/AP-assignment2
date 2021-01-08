@@ -23,7 +23,7 @@ public class MainClass {
         InvertedIndex invertedIndex = new InvertedIndex();
         
         try {
-            invertedIndex.templateMethod(Path.of("books"), Path.of("result.csv"));
+            invertedIndex.templateMethod(Path.of("books"), Path.of("invertedindexresult.csv"));
         } catch (IOException ex) {
             Logger.getLogger(MainClass.class.getName()).log(Level.SEVERE, null,
                     ex);

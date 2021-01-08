@@ -23,7 +23,7 @@ public class MainClass {
         WordsCount wordsCount = new WordsCount();
         
         try {
-            wordsCount.templateMethod(Path.of("books"), Path.of("result.csv"));
+            wordsCount.templateMethod(Path.of("books"), Path.of("wordscountresult.csv"));
         } catch (IOException ex) {
             Logger.getLogger(MainClass.class.getName()).log(Level.SEVERE, null,
                     ex);
