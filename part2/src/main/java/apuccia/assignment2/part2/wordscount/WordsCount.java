@@ -25,27 +25,27 @@ import java.util.stream.Stream;
 public class WordsCount extends MapReduce<String, List<String>, String, Integer, Stream<Pair<String, Integer>>> {
 
     @Override
-    protected Stream<? extends Pair<String, List<String>>> read(Path fileName) throws IOException {
+    protected Stream<Pair<String, List<String>>> read(Path fileName) throws IOException {
         
         Reader reader = new Reader(fileName);
         return reader.read();
     }
     
     @Override
-    protected Stream<? extends Pair<String, Integer>> map(
-            Stream<? extends Pair<String, List<String>>> readPairs) {
+    protected Stream<Pair<String, Integer>> map(
+            Stream<Pair<String, List<String>>> readPairs) {
         
         return readPairs.flatMap(
-                filePair -> filePair.getValue().stream().flatMap(
-                        line -> Arrays.stream(line.replaceAll(
-                                "[^a-zA-Z\\\\s]", "").toLowerCase().split(
-                                        " ")).filter(
-                                        word -> word.length() > 3).collect(
-                                        Collectors.groupingBy(Function.
-                                                identity(), Collectors.
-                                                        summingInt(x -> 1))).
-                                entrySet().stream().map(entry -> new Pair(entry.
-                                getKey(), entry.getValue()))));
+            filePair -> filePair.getValue().stream().flatMap(
+                line -> Arrays.stream(line.replaceAll("[^a-zA-Z\\\\s]", "").
+                                            toLowerCase().
+                                            split(" ")).
+                        filter(word -> word.length() > 3).
+                        collect(Collectors.groupingBy(Function.identity(), 
+                                Collectors.summingInt(x -> 1))).
+                        entrySet().
+                        stream().
+                        map(entry -> new Pair<>(entry.getKey(), entry.getValue()))));
     }
 
     
@@ -57,7 +57,7 @@ public class WordsCount extends MapReduce<String, List<String>, String, Integer,
 
     @Override
     protected Stream<Pair<String, Integer>> reduce(
-            Stream<? extends Pair<String, List<Integer>>> groupedPairs) {
+            Stream<Pair<String, List<Integer>>> groupedPairs) {
         
         return groupedPairs.map(pair -> new Pair(pair.getKey(), pair.getValue().
                 stream().mapToInt(Integer::intValue).sum()));

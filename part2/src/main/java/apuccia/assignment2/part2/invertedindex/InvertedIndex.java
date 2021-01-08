@@ -30,7 +30,7 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
 
     @Override
     protected Stream<Pair<String, Pair<String, Integer>>> map(
-            Stream<? extends Pair<String, List<String>>> readPairs) {
+            Stream<Pair<String, List<String>>> readPairs) {
         
         return readPairs.flatMap(
                 filePair -> filePair.getValue().stream().flatMap(
@@ -47,10 +47,10 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
 
     @Override
     protected Stream<Pair<String, Pair<String, Integer>>> reduce(
-            Stream<? extends Pair<String, List<Pair<String, Integer>>>> groupedPairs) {
+            Stream<Pair<String, List<Pair<String, Integer>>>> groupedPairs) {
         return groupedPairs.flatMap(
             filePair -> filePair.getValue().stream().map(
-                wordPair -> new Pair<String, Pair<String, Integer>>(filePair.getKey(), new Pair(wordPair.getKey(), wordPair.getValue()))));
+                wordPair -> new Pair<>(filePair.getKey(), new Pair(wordPair.getKey(), wordPair.getValue()))));
     }
 
     @Override

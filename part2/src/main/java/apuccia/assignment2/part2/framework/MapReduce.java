@@ -19,10 +19,10 @@ import java.util.stream.Stream;
  * @author Alessandro Puccia
  */
 public abstract class MapReduce<K, V, MK, MV, O> {
-    protected abstract Stream<? extends Pair<K, V>> read(Path fileName) throws IOException;
-    protected abstract Stream<? extends Pair<MK, MV>> map(Stream<? extends Pair<K, V>> readPairs);
-    protected Stream<? extends Pair<MK, List<MV>>> group(Stream<? extends Pair<MK, MV>> mappedPairs) {
-        Map<MK, List<MV>> groupedByEqualKeys = new TreeMap<>();
+    protected abstract Stream<Pair<K, V>> read(Path fileName) throws IOException;
+    protected abstract Stream<Pair<MK, MV>> map(Stream<Pair<K, V>> readPairs);
+    protected Stream<Pair<MK, List<MV>>> group(Stream<Pair<MK, MV>> mappedPairs) {
+        Map<MK, List<MV>> groupedByEqualKeys = new TreeMap<>(this::compare);
         
         mappedPairs.forEach(pair -> {
             List<MV> keyValues = groupedByEqualKeys.get(pair.getKey());
@@ -39,24 +39,20 @@ public abstract class MapReduce<K, V, MK, MV, O> {
         });
         
         
-        return groupedByEqualKeys.entrySet().stream().map(entry -> new Pair(entry.getKey(), entry.getValue()));
+        return groupedByEqualKeys.entrySet().stream().map(
+                entry -> new Pair(entry.getKey(), entry.getValue()));
     }
     
-    protected abstract O reduce(Stream<? extends Pair<MK, List<MV>>> groupedPairs);
+    protected abstract O reduce(Stream<Pair<MK, List<MV>>> groupedPairs);
     protected abstract void write(O output, Path fileName) throws IOException;
     
     protected abstract int compare(MK s1, MK s2);
     
     public final void templateMethod(Path inFile, Path outFile) throws IOException {
-        Stream<? extends Pair<K, V>> readPairs = read(inFile);
-        Stream<? extends Pair<MK, MV>> mappedPairs = map(readPairs);
+        Stream<Pair<K, V>> readPairs = read(inFile);
+        Stream<Pair<MK, MV>> mappedPairs = map(readPairs);
         
-        Stream<? extends Pair<MK, List<MV>>> groupedPairs = group(mappedPairs.sorted((Pair obj1, Pair obj2) -> {
-            MK k1 = (MK) obj1.getKey();
-            MK k2 = (MK) obj2.getKey();
-            
-            return compare(k1, k2);
-        }));
+        Stream<Pair<MK, List<MV>>> groupedPairs = group(mappedPairs);
         
         O output = reduce(groupedPairs);
         write(output, outFile);
