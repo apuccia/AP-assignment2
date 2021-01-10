@@ -60,7 +60,7 @@ def benchmark(warmups=0, iter=1, verbose=False, csv_file=None):
 
 
 #@benchmark(warmups=2, iter=5, verbose=True, csv_file="benchfibo.csv")
-def fibonacci(n=32):
+def fibonacci(n=31):
     def fibo(n):
         if n == 0:
             return 0
@@ -74,7 +74,7 @@ def fibonacci(n=32):
 
 def test(f, *args, **kwargs):
     def test_f(nthreads=1, ntimes=1):
-        @benchmark(iter=ntimes, verbose=True, csv_file=f"f_{nthreads}_{ntimes}.csv")
+        @benchmark(iter=ntimes, verbose=True, csv_file=f"{f.__name__}_{nthreads}_{ntimes}.csv")
         def wrapper():
             f(*args, **kwargs)
 
