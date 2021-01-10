@@ -1,6 +1,6 @@
 from functools import wraps
 from statistics import mean, variance
-import threading
+from threading import Thread
 import csv
 import time
 
@@ -59,8 +59,8 @@ def benchmark(warmups=0, iter=1, verbose=False, csv_file=None):
     return inner_function
 
 
-#@benchmark(iter=5, verbose=True, csv_file="prova.csv")
-def fibonacci(n=30):
+#@benchmark(warmups=2, iter=5, verbose=True, csv_file="benchfibo.csv")
+def fibonacci(n=32):
     def fibo(n):
         if n == 0:
             return 0
@@ -72,18 +72,25 @@ def fibonacci(n=30):
     fibo(n)
 
 
-def test(f):
+def test(f, *args, **kwargs):
     def test_f(nthreads=1, ntimes=1):
         @benchmark(iter=ntimes, verbose=True, csv_file=f"f_{nthreads}_{ntimes}.csv")
-        def wrapper(*args, **kwargs):
+        def wrapper():
             f(*args, **kwargs)
 
-        return wrapper
+        pool = [
+            Thread(target=wrapper) for _ in range(nthreads)
+        ]
+        
+        for t in pool:
+            t.start()
+        for t in pool:
+            t.join()
 
-    test_f(1, 16)()
-    test_f(2, 8)()
-    test_f(4, 4)()
-    test_f(8, 2)()
+    test_f(1, 16)
+    test_f(2, 8)
+    test_f(4, 4)
+    test_f(8, 2)
 
 
 def to_csv(csv_file, results):
@@ -94,5 +101,6 @@ def to_csv(csv_file, results):
 
 
 if __name__ == "__main__":
+    #fibonacci()
     test(fibonacci)
 
