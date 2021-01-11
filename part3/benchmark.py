@@ -25,15 +25,18 @@ def benchmark(warmups=0, iter=1, verbose=False, csv_file=None):
                 if verbose:
                     print("*****************************************")
                     collapsed_times = [t[2] for t in times]
-                    print (f"Average time\t| {mean(collapsed_times)}")
-                    if len(times) > 1: print (f"Variance\t| {variance(collapsed_times)}")
+                    average = mean(collapsed_times)
+                    var = variance(collapsed_times)
+                    total = sum(collapsed_times)
+                    print(f"Total time\t| {total}")
+                    print (f"Average time\t| {average}")
+                    if len(times) > 1: print (f"Variance\t| {var}")
                     print("*****************************************")
                     if (csv_file):
-                        to_csv(csv_file, times)
+                        to_csv(csv_file, times, total, average, var)
 
             print("\n----------------ITER PHASE---------------")
             print("Iter\t\t| Time needed")
-            average_time = 0
             times = []
             for i in range(iter):
                 start_time = time.perf_counter()
@@ -42,17 +45,20 @@ def benchmark(warmups=0, iter=1, verbose=False, csv_file=None):
 
                 res = end_time - start_time
                 times.append((i + 1, False, res))
-                average_time += res 
                 print(f"{i + 1 }\t\t| {res}")
 
             print("*****************************************")
             collapsed_times = [t[2] for t in times]
-            print (f"Average time\t| {mean(collapsed_times)}")
-            if len(times) > 1: print (f"Variance\t| {variance(collapsed_times)}")
+            average = mean(collapsed_times)
+            var = variance(collapsed_times)
+            total = sum(collapsed_times)
+            print(f"Total time\t| {total}")
+            print (f"Average time\t| {average}")
+            if len(times) > 1: print (f"Variance\t| {var}")
             print("*****************************************")
 
             if (csv_file):
-                to_csv(csv_file, times)
+                to_csv(csv_file, times, total, average, var)
 
             
         return wrapper_benchmark
@@ -93,14 +99,29 @@ def test(f, *args, **kwargs):
     test_f(8, 2)
 
 
-def to_csv(csv_file, results):
+def to_csv(csv_file, results, total, average, variance):
     with open(csv_file, 'a') as result_file:
         writer = csv.writer(result_file, quoting=csv.QUOTE_MINIMAL)
         for t in results:
             writer.writerow(t)
 
+        writer.writerow(["total", total])
+        writer.writerow(["average", average])
+        writer.writerow(["variance", variance])
+
 
 if __name__ == "__main__":
     #fibonacci()
     test(fibonacci)
+
+
+""" 
+Due to the Global Interpreter Lock, only one thread at a time can access the
+interpreter in order to execute Python bytecode. Also, considering that the task
+executed by the threads is a CPU-bound task, the GIL cannot be released as in
+the case of an I/O-bound task. This situation is reflected in the Fibonacci
+function result where the iterations of the function executed by 2 threads take
+almost double the time that is needed by an iteration done in a single thread
+context.
+"""
 
