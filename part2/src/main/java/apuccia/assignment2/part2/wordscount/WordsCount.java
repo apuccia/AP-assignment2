@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,30 +38,46 @@ public class WordsCount extends MapReduce<String, List<String>, String, Integer,
         
         return readPairs.flatMap(
             filePair -> filePair.getValue().stream().flatMap(
+                        /**
+                         * mapping each line in a stream of words, splitted by
+                         * space, that are stripped from punctuation and all in
+                         * lowercase
+                         */
                 line -> Arrays.stream(line.replaceAll("[^a-zA-Z\\s]", " ").
                                             toLowerCase().
                                             split(" ")).
+                        /**
+                         * filtering by words with length greater than 3
+                         */
                         filter(word -> word.length() > 3).
+                        /**
+                         * grouping by equal words, each duplicate word with weight 1
+                         */
                         collect(Collectors.groupingBy(Function.identity(), 
                                 Collectors.summingInt(x -> 1))).
                         entrySet().
                         stream().
+                        /**
+                         * mapping each entry to a Pair object
+                         */
                         map(entry -> new Pair<>(entry.getKey(), entry.getValue()))));
     }
-
     
 
     @Override
     protected int compare(String s1, String s2) {
+        
         return s1.compareTo(s2);
     }
 
     @Override
     protected Stream<Pair<String, Integer>> reduce(
-            Stream<Pair<String, List<Integer>>> groupedPairs) {
+            Stream<Pair<String, Collection<Integer>>> groupedPairs) {
         
-        return groupedPairs.map(pair -> new Pair(pair.getKey(), pair.getValue().
-                stream().mapToInt(Integer::intValue).sum()));
+        return groupedPairs.map(
+                pair -> new Pair(pair.getKey(),
+                        pair.getValue().stream().mapToInt(Integer::intValue).
+                                sum()));
     }
 
     @Override

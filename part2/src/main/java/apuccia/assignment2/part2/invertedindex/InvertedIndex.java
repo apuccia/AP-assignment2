@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
  *
  * @author Alessandro Puccia
  */
-public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<String, Integer>, Stream<Pair<String, Pair<String, Integer>>>>{
+public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<String, Integer>, Stream<Pair<String, Pair<String, Integer>>>> {
 
     @Override
     protected Stream<Pair<String, List<String>>> read(Path fileName)
@@ -35,11 +36,24 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
             Stream<Pair<String, List<String>>> readPairs) {
         
         return readPairs.flatMap(
-                filePair -> filePair.getValue().stream().flatMap(
-                    line -> Arrays.stream(line.replaceAll(
-                                "[^a-zA-Z\\s]", " ").toLowerCase().split(" ")).filter(
-                        word -> word.length() > 3).map(
-                            word -> new Pair<>(word, new Pair(filePair.getKey(), filePair.getValue().indexOf(line))))));
+            filePair -> filePair.getValue().stream().flatMap(
+                        /**
+                         * mapping each line in a stream of words (not including
+                         * numbers), splitted by space, that are stripped from
+                         * punctuation and all in lowercase
+                         */
+                line -> Arrays.stream(line.replaceAll("[^a-zA-Z\\s]", " ").
+                                            toLowerCase().
+                                            split(" ")).
+                        /**
+                         * filtering by words with length greater than 3
+                         */
+                        filter(word -> word.length() > 3).
+                        /**
+                         * mapping each entry to a Pair object
+                         */
+                        map(word -> new Pair<>(word, new Pair(filePair.getKey(),
+                                filePair.getValue().indexOf(line))))));
     }
 
     @Override
@@ -49,10 +63,12 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
 
     @Override
     protected Stream<Pair<String, Pair<String, Integer>>> reduce(
-            Stream<Pair<String, List<Pair<String, Integer>>>> groupedPairs) {
+            Stream<Pair<String, Collection<Pair<String, Integer>>>> groupedPairs) {
         return groupedPairs.flatMap(
-            filePair -> filePair.getValue().stream().map(
-                wordPair -> new Pair<>(filePair.getKey(), new Pair(wordPair.getKey(), wordPair.getValue()))));
+            wordPair -> wordPair.getValue().stream().map(
+                filePair -> new Pair<>(wordPair.getKey(), 
+                                        new Pair(filePair.getKey(), 
+                                                filePair.getValue()))));
     }
 
     @Override
@@ -60,7 +76,11 @@ public class InvertedIndex extends MapReduce<String, List<String>, String, Pair<
             Stream<Pair<String, Pair<String, Integer>>> output, Path fileName)
             throws IOException {
         PrintStream ps = new PrintStream(new File(fileName.toString()));
-        output.forEach(p -> ps.println(p.getKey() + ", " + p.getValue().getValue() + ", " + p.getValue().getKey()));
+        /**
+         * outputting in a file with format word, linenumber, filename
+         */
+        output.forEach(p -> ps.println(p.getKey() + ", " + 
+                p.getValue().getValue() + ", " + p.getValue().getKey()));
         ps.close();
     }
 }
