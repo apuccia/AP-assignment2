@@ -33,7 +33,7 @@ public abstract class MapReduce<K, V, MK, MV, O> {
     protected abstract Stream<Pair<MK, MV>> map(Stream<Pair<K, V>> readPairs);
     
     /**
-     * hookup method that can be overloaded in the framework instance. In the
+     * hookup method that can be overridden in the framework instance. In the
      * default implementation, the pairs are inserted in a ordered way inside a
      * treemap and grouped by equal keys appending the values in a list.
      */
